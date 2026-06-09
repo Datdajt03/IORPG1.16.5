@@ -1,0 +1,18 @@
+filename = 'relics-1.16.5-0.3.4.4.jar'
+name = 'Relics'
+side = ''
+x-prismlauncher-dependencies = []
+x-prismlauncher-loaders = [ 'forge' ]
+x-prismlauncher-mc-versions = [ '1.16.5', '1.16.5' ]
+x-prismlauncher-release-type = 'release'
+x-prismlauncher-version-number = '0.3.4.4'
+
+[download]
+hash = '6faee08d5047449ed8767fe3728f34a2ec186782dec9fb50d1a66706a3d3f5a4f450296d195cded8e468a75af7a49f1c02678b5849d5ed19fab0b1688d12f117'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/OCJRPujW/versions/psh9x2ZQ/relics-1.16.5-0.3.4.4.jar'
+
+[update.modrinth]
+mod-id = 'OCJRPujW'
+version = 'psh9x2ZQ'

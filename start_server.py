@@ -1,6 +1,65 @@
 import os
 import subprocess
 import sys
+import re
+import glob
+
+def install_java_via_sdkman():
+    sdkman_init_paths = [
+        "/usr/local/sdkman/bin/sdkman-init.sh",
+        os.path.expanduser("~/.sdkman/bin/sdkman-init.sh")
+    ]
+    sdkman_init = None
+    for path in sdkman_init_paths:
+        if os.path.exists(path):
+            sdkman_init = path
+            break
+            
+    if not sdkman_init:
+        return False
+        
+    try:
+        print("[+] Dang doc danh sach phien ban Java tu SDKMAN...")
+        cmd = f"bash -c 'source {sdkman_init} && sdk list java'"
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if result.returncode != 0:
+            return False
+            
+        # Tim kiem phien ban Java 11 truoc
+        versions = list(dict.fromkeys(re.findall(r'\b(11\.[0-9a-zA-Z.-]+)\b', result.stdout)))
+        if not versions:
+            # Neu khong co Java 11 thi tim Java 8
+            versions = list(dict.fromkeys(re.findall(r'\b(8\.[0-9a-zA-Z.-]+)\b', result.stdout)))
+            
+        if versions:
+            # Uu tien phien ban cua Microsoft (-ms) hoac Temurin (-tem) vi chung rat on dinh
+            selected_version = None
+            for v in versions:
+                if '-ms' in v or '-tem' in v:
+                    selected_version = v
+                    break
+            if not selected_version:
+                selected_version = versions[0]
+                
+            print(f"[+] Tim thay phien ban Java phu hop trong SDKMAN: {selected_version}")
+            print(f"[+] Dang tien hanh cai dat {selected_version} qua SDKMAN...")
+            install_cmd = f"bash -c 'source {sdkman_init} && yes | sdk install java {selected_version}'"
+            res = subprocess.run(install_cmd, shell=True)
+            return res.returncode == 0
+    except Exception as e:
+        print(f"[-] Loi khi tu dong cai dat qua SDKMAN: {e}")
+    return False
+
+def install_java_via_apt():
+    try:
+        print("[+] Dang thu cai dat OpenJDK 11 qua apt-get (can quyen sudo)...")
+        # Chay apt-get update va install
+        subprocess.run(["sudo", "apt-get", "update", "-y"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["sudo", "apt-get", "install", "-y", "openjdk-11-jre-headless"], check=True)
+        return True
+    except Exception as e:
+        print(f"[-] Khong the cai dat bang apt-get: {e}")
+    return False
 
 # Chuyen thu muc lam viec ve thu muc chua file script nay
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -74,7 +133,6 @@ try:
     else:
         # Chay tren Linux / Codespace
         # Tim Java 8 hoac 11 (Forge 1.16.5 can Java 8/11 de hoat dong tot nhat)
-        import glob
         java_cmd = "java"
         possible_patterns = [
             "/usr/local/sdkman/candidates/java/8*/bin/java",
@@ -96,12 +154,34 @@ try:
             print(f"[+] Tim thay Java tai: {java_cmd}")
         else:
             print("[-] CANH BAO: Khong tim thay phien ban Java phu hop (Java 8/11) trong he thong!")
-            print("[+] Cac phien ban Java dang co san trong SDKMAN:")
-            if os.path.exists("/usr/local/sdkman/candidates/java/"):
-                try:
-                    print("    " + ", ".join(os.listdir("/usr/local/sdkman/candidates/java/")))
-                except Exception:
-                    pass
+            
+            # Tu dong cai dat
+            installed = False
+            if install_java_via_sdkman():
+                installed = True
+            
+            if not installed:
+                if install_java_via_apt():
+                    installed = True
+            
+            if installed:
+                # Kiem tra lai danh sach phien ban
+                found_java_paths = []
+                for pattern in possible_patterns:
+                    found_java_paths.extend(glob.glob(pattern))
+                if found_java_paths:
+                    java_cmd = found_java_paths[0]
+                    print(f"[+] Da tu dong cai dat Java phu hop tai: {java_cmd}")
+                else:
+                    print("[-] Khong tim thay duong dan Java vua cai dat, su dung mac dinh.")
+            else:
+                print("[-] CANH BAO: Khong the tu dong cai dat Java 8/11. Se thu dung lenh 'java' mac dinh.")
+                print("[+] Cac phien ban Java dang co san trong SDKMAN:")
+                if os.path.exists("/usr/local/sdkman/candidates/java/"):
+                    try:
+                        print("    " + ", ".join(os.listdir("/usr/local/sdkman/candidates/java/")))
+                    except Exception:
+                        pass
 
         cmd = [java_cmd] + ram_args + ["-jar", jar_file, "nogui"]
         print(f"[+] Lenh khoi chay: {' '.join(cmd)}")

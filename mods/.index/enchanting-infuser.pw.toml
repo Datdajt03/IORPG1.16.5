@@ -1,0 +1,25 @@
+filename = 'EnchantingInfuser-v1.0.2-1.16.5-Forge.jar'
+name = 'Enchanting Infuser'
+side = ''
+x-prismlauncher-loaders = [ 'forge' ]
+x-prismlauncher-mc-versions = [ '1.16.2', '1.16.3', '1.16.4', '1.16.5' ]
+x-prismlauncher-release-type = 'release'
+x-prismlauncher-version-number = 'EnchantingInfuser-v1.0.2-1.16.5-Forge.jar'
+
+[download]
+hash = '438ac055859b94a13705eed4a0d57fe8da585d3c'
+hash-format = 'sha1'
+mode = 'metadata:curseforge'
+url = ''
+
+[update.curseforge]
+file-id = 3596539
+project-id = 551151
+
+[[x-prismlauncher-dependencies]]
+addonId = '250419'
+type = 'OPTIONAL'
+
+[[x-prismlauncher-dependencies]]
+addonId = '495476'
+type = 'REQUIRED'
